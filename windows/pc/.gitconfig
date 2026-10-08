@@ -1,0 +1,28 @@
+[init]
+	defaultBranch = main
+[user]
+	name = Rim
+	email = mail@dummy.com
+[core]
+	autocrlf = input
+	whitespace = trailing-space
+	editor = nano
+	pager = less -SRFX
+	longpaths = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[safe]
+	directory = *
+[push]
+	FollowTags = true
+[log]
+	date = iso8601-strict
+[help]
+	format = web
+[web]
+    browser = chromium
+[browser "helium"]
+    path = C:\\Users\\user\\AppData\\Local\\imput\\Application\\chrome.exe

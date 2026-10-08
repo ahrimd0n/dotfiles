@@ -1,0 +1,143 @@
+-- -- autoload.lua
+-- -- Reads EXIF orientation from JPEGs and rotates video accordingly in mpv
+
+-- local mp = require("mp")
+-- local bit = require("bit")
+
+-- -- Helper: read 2 bytes (big endian)
+-- local function read_uint16_be(f)
+-- 	local b1, b2 = f:read(1), f:read(1)
+-- 	if not b1 or not b2 then
+-- 		return nil
+-- 	end
+-- 	return string.byte(b1) * 256 + string.byte(b2)
+-- end
+
+-- -- Helper: read 2 bytes (little endian)
+-- local function read_uint16_le(f)
+-- 	local b1, b2 = f:read(1), f:read(1)
+-- 	if not b1 or not b2 then
+-- 		return nil
+-- 	end
+-- 	return string.byte(b2) * 256 + string.byte(b1)
+-- end
+
+-- -- Helper: read 4 bytes (big endian)
+-- local function read_uint32_be(f)
+-- 	local b1, b2, b3, b4 = f:read(1), f:read(1), f:read(1), f:read(1)
+-- 	if not b4 then
+-- 		return nil
+-- 	end
+-- 	return string.byte(b1) * 16777216 + string.byte(b2) * 65536 + string.byte(b3) * 256 + string.byte(b4)
+-- end
+
+-- -- Helper: read 4 bytes (little endian)
+-- local function read_uint32_le(f)
+-- 	local b1, b2, b3, b4 = f:read(1), f:read(1), f:read(1), f:read(1)
+-- 	if not b4 then
+-- 		return nil
+-- 	end
+-- 	return string.byte(b4) * 16777216 + string.byte(b3) * 65536 + string.byte(b2) * 256 + string.byte(b1)
+-- end
+
+-- -- Parse EXIF orientation from a JPEG
+-- local function jpeg_exif_orientation(path)
+-- 	local f = io.open(path, "rb")
+-- 	if not f then
+-- 		return nil
+-- 	end
+
+-- 	-- Check JPEG SOI marker
+-- 	if f:read(2) ~= string.char(0xFF, 0xD8) then
+-- 		f:close()
+-- 		return nil
+-- 	end
+
+-- 	-- Scan for APP1 (Exif) marker
+-- 	while true do
+-- 		local marker = f:read(2)
+-- 		if not marker or string.byte(marker, 1) ~= 0xFF then
+-- 			break
+-- 		end
+-- 		local code = string.byte(marker, 2)
+-- 		local size_bytes = f:read(2)
+-- 		if not size_bytes then
+-- 			break
+-- 		end
+-- 		local size = string.byte(size_bytes, 1) * 256 + string.byte(size_bytes, 2)
+
+-- 		if code == 0xE1 then
+-- 			-- Found APP1 Exif
+-- 			local exif = f:read(size - 2)
+-- 			f:close()
+
+-- 			if not exif or not exif:match("^Exif%z%z") then
+-- 				return nil
+-- 			end
+
+-- 			-- Determine endianness
+-- 			local endian = exif:sub(7, 8)
+-- 			local read16, read32
+-- 			if endian == "MM" then
+-- 				read16, read32 =
+-- 					function(s, ofs)
+-- 						return string.byte(s, ofs) * 256 + string.byte(s, ofs + 1)
+-- 					end, function(s, ofs)
+-- 						return string.byte(s, ofs) * 16777216 + string.byte(s, ofs + 1) * 65536 + string.byte(s, ofs + 2) * 256 + string.byte(s, ofs + 3)
+-- 					end
+-- 			elseif endian == "II" then
+-- 				read16, read32 =
+-- 					function(s, ofs)
+-- 						return string.byte(s, ofs + 1) * 256 + string.byte(s, ofs)
+-- 					end, function(s, ofs)
+-- 						return string.byte(s, ofs + 3) * 16777216 + string.byte(s, ofs + 2) * 65536 + string.byte(s, ofs + 1) * 256 + string.byte(s, ofs)
+-- 					end
+-- 			else
+-- 				return nil
+-- 			end
+
+-- 			-- Offset to first IFD
+-- 			local ifd_offset = read32(exif, 11) + 7
+-- 			local num_entries = read16(exif, ifd_offset + 1)
+
+-- 			for i = 0, num_entries - 1 do
+-- 				local entry = ifd_offset + 3 + i * 12
+-- 				local tag = read16(exif, entry + 0)
+-- 				if tag == 0x0112 then
+-- 					-- Orientation tag
+-- 					local value = read16(exif, entry + 8)
+-- 					return ({ [1] = "upper-left", [3] = "lower-right", [6] = "upper-right", [8] = "lower-left" })[value]
+-- 				end
+-- 			end
+-- 			return nil
+-- 		else
+-- 			f:seek("cur", size - 2)
+-- 		end
+-- 	end
+
+-- 	f:close()
+-- 	return nil
+-- end
+
+-- -- Map EXIF to rotation angle
+-- local exif_rotation_map = {
+-- 	["upper-left"] = 0,
+-- 	["lower-right"] = 180,
+-- 	["upper-right"] = 90,
+-- 	["lower-left"] = 270,
+-- }
+
+-- -- Hook into mpv file load
+-- mp.register_event("file-loaded", function()
+-- 	local path = mp.get_property("path")
+-- 	if not path then
+-- 		return
+-- 	end
+
+-- 	local orient = jpeg_exif_orientation(path)
+-- 	if orient then
+-- 		local angle = exif_rotation_map[orient] or 0
+-- 		mp.set_property_number("video-rotate", angle)
+-- 		mp.msg.info("Applied EXIF rotation: " .. angle .. "°")
+-- 	end
+-- end)

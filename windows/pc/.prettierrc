@@ -1,0 +1,46 @@
+{
+  "plugins": [
+    "C:/Users/user/AppData/Roaming/npm/node_modules/prettier-plugin-toml/lib/index.cjs",
+    "C:/Users/user/AppData/Roaming/npm/node_modules/prettier-plugin-sh/lib/index.cjs"
+  ],
+  "overrides": [
+    {
+      "files": "*.toml",
+      "options": {
+        "tomlVersion": "v1.0.0",
+        "arrayBracketSpaceWidth": 0,
+        "arrayCommaSpaceWidth": 1,
+        "commentStyle": "normalize",
+        "dateTimeDelimiter": "T",
+        "groupBlankLinesLimit": 1,
+        "indentSubTables": false,
+        "indentTableKeyValuePairs": false,
+        "inlineTableBraceSpaceWidth": 1,
+        "inlineTableCommaSpaceWidth": 1,
+        "keyValueEqualsSignAlignment": false,
+        "keyQuoteStyle": "double",
+        "stringQuoteStyle": "double",
+        "trailingCommentAlignment": false,
+        "keyValueEqualsSignSpaceWidth": 1,
+        "tableBlankLines": 1,
+        "trailingCommentSpaceWidth": 2
+      }  
+    },
+    {
+      "files": "*.sh",
+      "options": {
+      "keepComments": true,
+      "variant": 1,
+      "simplify": false,
+      "indent": 2,
+      "binaryNextLine": true,
+      "switchCaseIndent": true,
+      "spaceRedirects": true,
+      "keepPadding": false,
+      "minify": false,
+      "singleLine": false,
+      "functionNextLine": true
+      }
+    }
+  ]
+}
